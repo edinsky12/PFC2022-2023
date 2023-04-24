@@ -1,0 +1,8 @@
+[  
+
+{ "temperature" :  "30", "date" : "12-02-2023", "register" : "20:59", "user" : "roberto" },
+{ "temperature" :  "31", "date" : "12-02-2023", "register": "22:15", "user": "roberto" },
+{ "temperature":  "31", "date" : "12-02-2023", "register": "23:20", "user": "roberto" },
+{ "temperature":  "29", "date" : "12-02-2023", "register": "23:45", "user": "roberto" },
+
+]
