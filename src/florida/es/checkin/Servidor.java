@@ -11,6 +11,11 @@ import java.net.Socket;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import com.sun.net.httpserver.HttpServer;
+import java.util.Scanner;
+
+import java.net.URL;
+import java.net.HttpURLConnection;
+import java.io.InputStreamReader;
 
 public class Servidor {
 
@@ -19,11 +24,6 @@ public class Servidor {
 
 	public static void main(String[] args) throws IOException {
 		
-		//GET Informacion login= http://54.198.123.240:5000/api?login=[userId]
-		//GET Informacion horario= http://54.198.123.240:5000/api?schedule=[userId]
-		//GET Informacion descanso= http://54.198.123.240:5000/api?breaktime=[userId]
-		//POST = http://54.198.123.240:5000/api/enviaDatos {accion,info,userId}
-		//Acciones: 1. fichar entrada / 2. Fichar salida / 3.
 		
 		try {
 			
@@ -69,6 +69,39 @@ public class Servidor {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
+		
+		Scanner scanner = new Scanner(System.in);
+        System.out.print("Execute auto-checkout? (will add an exit record to every entry record without its corresponding exit record) (y/n): ");
+        String respuesta = scanner.nextLine();
+        if (respuesta.equals("y") || respuesta.equals("yes") || respuesta.equals("s")) {
+        	try {
+                String result = fetch("http://35.170.135.172:5000/api?autoCheckout=hello");
+                System.out.println("Executing auto-Chechkout...");
+            } catch (IOException e) {
+            	System.out.println("Auto chechkout has failed or is not necessary");
+            }
+        } else if (respuesta.equals("n")) {
+            System.out.println("Ok, wont auto-Checkout");
+        } else {
+            System.out.println("Ok, wont auto-Checkout");
+        }
+		
+		
 	}
+	public static String fetch(String urlString) throws IOException {
+        URL url = new URL(urlString);
+        HttpURLConnection con = (HttpURLConnection) url.openConnection();
+        con.setRequestMethod("GET");
+
+        BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+        String inputLine;
+        StringBuilder content = new StringBuilder();
+
+        while ((inputLine = in.readLine()) != null) {
+            content.append(inputLine);
+        }
+        in.close();
+
+        return content.toString();
+    }
 }

@@ -14,6 +14,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,7 +23,6 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
 public class GestorHTTP implements HttpHandler {
-
 	InputStream is = null;
 	InputStreamReader isr = null;
 	BufferedReader bf = null;
@@ -45,6 +46,10 @@ public class GestorHTTP implements HttpHandler {
 			handlePOSTResponse(httpExchange, requestParamValue);
 		}
 	}
+	
+	
+	
+	
 
 	/////////////////////////////////////////////////////////////////////////////////////////
 	// 																					   //
@@ -79,6 +84,7 @@ public class GestorHTTP implements HttpHandler {
 		String action = requestParamValue.split(",")[0];
 		String info = requestParamValue.split(",")[1];
 		String user = requestParamValue.split(",")[2];
+		String minutes = requestParamValue.split(",")[3];
 		System.out.println("Action: " + action + "\nInfo: " + info + "\nUser: " + user);
 		int outcome = 0;
 		//String response = requestParamValue;
@@ -89,11 +95,11 @@ public class GestorHTTP implements HttpHandler {
 			String timeStomp = new SimpleDateFormat("HH:mm").format(new java.util.Date());
 			String dateStomp = new SimpleDateFormat("yyyy-MM-dd").format(new java.util.Date());
 			System.out.println("Entrada de: " + user + "\nHora: " + timeStomp + "\nDia: " + dateStomp);
+			
 			try {
 				Class.forName("com.mysql.cj.jdbc.Driver");
 				Connection con = DriverManager.getConnection("jdbc:mysql://"+ip+":"+portDB+"/"+database, userDB, pwdDB);
 				System.out.println("Lanzando consulta...");
-				
 				PreparedStatement psInsertar = con.prepareStatement("INSERT INTO checks (EmployeeID, Type, Date, Time) VALUES (?,?,?,?)");
 				psInsertar.setString(1, user);
 				psInsertar.setString(2, "Entry");
@@ -114,11 +120,12 @@ public class GestorHTTP implements HttpHandler {
 			String timeStomp = new SimpleDateFormat("HH:mm").format(new java.util.Date());
 			String dateStomp = new SimpleDateFormat("yyyy-MM-dd").format(new java.util.Date());
 			System.out.println("Entrada de: " + user + "\nHora: " + timeStomp + "\nDia: " + dateStomp);
+			
+			
 			try {
 				Class.forName("com.mysql.cj.jdbc.Driver");
 				Connection con = DriverManager.getConnection("jdbc:mysql://"+ip+":"+portDB+"/"+database, userDB, pwdDB);
 				System.out.println("Lanzando consulta...");
-				
 				PreparedStatement psInsertar = con.prepareStatement("INSERT INTO checks (EmployeeID, Type, Date, Time) VALUES (?,?,?,?)");
 				psInsertar.setString(1, user);
 				psInsertar.setString(2, "Exit");
@@ -128,40 +135,51 @@ public class GestorHTTP implements HttpHandler {
 				System.out.println("RS"+resultadoInsertar);
 				con.close();
 				if (resultadoInsertar == 1) {
-					System.out.println("Se ha añadido la entrada con éxito");}
+					System.out.println("Se ha añadido la salida con éxito");}
 				
 			} catch (Exception e) {
 				System.out.println(e);
 			}
 
 		}break;
-		case "login": {
-			;
+		case "updateMinutes": {
+			String dateStomp = new SimpleDateFormat("yyyy-MM-dd").format(new java.util.Date());
+			
 			try {
-			Class.forName("com.mysql.cj.jdbc.Driver");
-			Connection con = DriverManager.getConnection("jdbc:mysql://"+ip+":"+portDB+"/"+database, userDB, pwdDB);
-			Statement stmt = con.createStatement();
-			ResultSet rs = stmt.executeQuery("SELECT * FROM registeredemployee WHERE EmployeeId = '" + user + "'");
-			while (rs.next()) {
-				String userDB = rs.getString(1);
-				String pwd = rs.getString(3);
-				if(user.equals(userDB) && info.equals(pwd)) {
-					outcome = 15;
-				}	else {
-					outcome = 26;
-				}
-				return outcome;
-			}
-			rs.close();
-			stmt.close();
-			con.close();
-			httpExchange.sendResponseHeaders(200, outcome);
-			
-			
-			
+				Class.forName("com.mysql.cj.jdbc.Driver");
+				Connection con = DriverManager.getConnection("jdbc:mysql://"+ip+":"+portDB+"/"+database, userDB, pwdDB);
+				System.out.println("Lanzando consulta...");
+				PreparedStatement psInsertar = con.prepareStatement(
+						"INSERT INTO employeehoursperdaytable (EmployeeId, Date, TotalTime)"+
+				" SELECT '"+user+"', '"+dateStomp+"', '"+minutes+"'"+
+				" WHERE NOT EXISTS (SELECT * FROM employeehoursperdaytable WHERE EmployeeId = '"+user+"' AND Date = '"+dateStomp+"');");
+				
+				int resultadoInsertar = psInsertar.executeUpdate();
+				System.out.println("RS"+resultadoInsertar);
+				con.close();
+				if (resultadoInsertar == 1) {
+					System.out.println("Se ha añadido la salida con éxito");}
+				
 			} catch (Exception e) {
 				System.out.println(e);
 			}
+			
+			try {
+				Class.forName("com.mysql.cj.jdbc.Driver");
+				Connection con = DriverManager.getConnection("jdbc:mysql://"+ip+":"+portDB+"/"+database, userDB, pwdDB);
+				System.out.println("Lanzando consulta...");
+				PreparedStatement psInsertar = con.prepareStatement("UPDATE employeehoursperdaytable SET TotalTime = "+minutes+" WHERE EmployeeId = '"+user+"' AND Date = '"+dateStomp+"';");
+				
+				int resultadoInsertar = psInsertar.executeUpdate();
+				System.out.println("RS"+resultadoInsertar);
+				con.close();
+				if (resultadoInsertar == 1) {
+					System.out.println("Se ha añadido la salida con éxito");}
+				
+			} catch (Exception e) {
+				System.out.println(e);
+			}
+			
 
 		}break;
 		
@@ -194,6 +212,33 @@ public class GestorHTTP implements HttpHandler {
 		
 
 		switch (element) {
+		case "autoCheckout":{
+			try {
+				Class.forName("com.mysql.cj.jdbc.Driver");
+				Connection con = DriverManager.getConnection("jdbc:mysql://"+ip+":"+portDB+"/"+database, userDB, pwdDB);
+				System.out.println("Lanzando consulta...");
+				PreparedStatement psInsertar = con.prepareStatement("INSERT INTO checks (EmployeeId, Type, Date, Time) " +
+			               "SELECT e.EmployeeId, 'Exit', DATE_FORMAT(e.Date, '%Y-%m-%d'), '18:00:00' " +
+			               "FROM checks e " +
+			               "WHERE e.Type = 'Entry' AND NOT EXISTS (" +
+			               "  SELECT 1 FROM checks s " +
+			               "  WHERE s.EmployeeId = e.EmployeeId " +
+			               "    AND s.Date = e.Date " +
+			               "    AND s.Time > e.Time " +
+			               "    AND s.Type = 'Exit' " +
+			               ");");
+				
+				int resultadoInsertar = psInsertar.executeUpdate();
+				System.out.println("RS"+resultadoInsertar);
+				con.close();
+				if (resultadoInsertar == 1) {
+					System.out.println("Se ha añadido la salida con éxito");}
+				
+			} catch (Exception e) {
+				System.out.println(e);
+			}
+		}
+		
 		case "login": {
 			String usernameSentByApp = request.split(";")[0];
 			String passwordSentByApp = request.split(";")[1];
@@ -284,6 +329,101 @@ public class GestorHTTP implements HttpHandler {
 				stmt.close();
 				con.close();
 				return "{\"historic\":"+resultsQuery.toString()+"}";
+			} catch (Exception e) {
+				System.out.println(e);
+			}
+		}
+		case "lastRec": {
+			try {
+				Class.forName("com.mysql.cj.jdbc.Driver");
+				
+				Connection con = DriverManager.getConnection("jdbc:mysql://"+ip+":"+portDB+"/"+database, userDB, pwdDB);
+				Statement stmt = con.createStatement();
+				ResultSet rs = stmt.executeQuery("SELECT * FROM checks WHERE EmployeeID = '" + request + "' ORDER BY Checkid DESC LIMIT 1");
+				while (rs.next()) {
+					String employeeId = rs.getString("EmployeeId");
+					String type = rs.getString("Type");
+					String date = rs.getString("Date");
+					String time = rs.getString("Time");
+					String millis = rs.getString("Total");
+					time = time.substring(0,time.length() - 3);
+					String outcome = "{\"type\": \""+type+"\","
+							+ "\"employeeID\": \""+employeeId+"\", "
+							+ "\"date\": \""+date+"\","
+							+ "\"total\": \""+millis+"\","
+							+ "\"time\": \""+time+"\"}";
+					System.out.println("Last register: "+outcome);
+					return "{\"lastRec\":"+outcome+"}";
+				}
+				
+				rs.close();
+				stmt.close();
+				con.close();
+				
+			} catch (Exception e) {
+				System.out.println(e);
+			}
+		}
+		
+		case "getMinutes": {
+			String dateStomp = new SimpleDateFormat("yyyy-MM-dd").format(new java.util.Date());
+			System.out.println("Trying to get minutes");
+			String outcome = "P";
+			try {
+				Class.forName("com.mysql.cj.jdbc.Driver");
+				
+				Connection con = DriverManager.getConnection("jdbc:mysql://"+ip+":"+portDB+"/"+database, userDB, pwdDB);
+				Statement stmt = con.createStatement();
+				ResultSet rs = stmt.executeQuery("SELECT * FROM employeehoursperdaytable WHERE EmployeeId = '"+request+"' AND Date = '"+dateStomp+"';");
+				System.out.println("SELECT * FROM employeehoursperdaytable WHERE EmployeeId = '"+request+"' AND Date = '"+dateStomp+"';");
+				while (rs.next()) {
+					String employeeId = rs.getString("EmployeeId");
+					String date = rs.getString("Date");
+					String time = rs.getString("TotalTime");
+					outcome = "{\"employeeID\": \""+employeeId+"\", "
+							+ "\"date\": \""+date+"\","
+							+ "\"time\": \""+time+"\"}";
+					
+					return "{\"minutes\":"+outcome+"}";
+				}
+				System.out.println("Minutes Today: "+outcome);
+				rs.close();
+				stmt.close();
+				con.close();
+				
+			} catch (Exception e) {
+				System.out.println(e);
+			}
+		}
+		
+		case "updateMinutes": {
+			String dateStomp = new SimpleDateFormat("yyyy-MM-dd").format(new java.util.Date());
+			System.out.println("Trying to get minutes");
+			String username = request.split("~")[0];
+			String newtime = request.split("~")[1];
+			String outcome = "P";
+			try {
+				Class.forName("com.mysql.cj.jdbc.Driver");
+				
+				Connection con = DriverManager.getConnection("jdbc:mysql://"+ip+":"+portDB+"/"+database, userDB, pwdDB);
+				Statement stmt = con.createStatement();
+				ResultSet rs = stmt.executeQuery("UPDATE employeehoursperday SET TotalTime = '"+newtime+"' WHERE EmployeeId = '"+username+"' AND Date = '"+dateStomp+"';");
+				System.out.println("UPDATE employeehoursperday SET TotalTime = '"+newtime+"' WHERE EmployeeId = '"+username+"' AND Date = '"+dateStomp+"';");
+				while (rs.next()) {
+					String employeeId = rs.getString("EmployeeId");
+					String date = rs.getString("Date");
+					String time = rs.getString("TotalTime");
+					outcome = "{\"employeeID\": \""+employeeId+"\", "
+							+ "\"date\": \""+date+"\","
+							+ "\"time\": \""+time+"\"}";
+					
+					return "{\"minutes\":"+outcome+"}";
+				}
+				System.out.println("Minutes Today: "+outcome);
+				rs.close();
+				stmt.close();
+				con.close();
+				
 			} catch (Exception e) {
 				System.out.println(e);
 			}
