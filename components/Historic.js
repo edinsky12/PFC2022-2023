@@ -10,32 +10,31 @@ import {
   TouchableOpacity,
   Keyboard,
 } from 'react-native';
-import { TextInput, Button, Surface } from 'react-native-paper';
+import { Surface, Button } from 'react-native-paper';
 import PantallasProvider from '../components/ContextProvider';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
-function Calendar({ navigation }) {
+function Historic({ navigation }) {
   const [isLoading, setLoading] = useState(true);
-  const [isActive, setIsActive] = useState(false);
-  const [btnText, setBtnText] = useState('Entrada');
   const { userLogged, setUserLogged } = useContext(PantallasProvider);
-  const { groupId, setGroupId } = useContext(PantallasProvider);
-  const { office } = useContext(PantallasProvider);
   const [data, setData] = useState([]);
-  const [dayToday, setDayToday] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [dateFilter, setDateFilter] = useState(null);
+  const [date, setDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [calendarMode, setCalendarMode] = useState('');
+  const [calendarDisplay, setCalendarDisplay] = useState('');
 
   const today = moment().format('dddd');
-
-  //TESTING ___________________________________________________________________________________
 
   const getHistoric = async () => {
     try {
       const response = await fetch(
-        'http://35.170.135.172:5000/api?historic='+userLogged
+        'http://35.170.135.172:5000/api?historic=' + userLogged
       );
       const json = await response.json();
       setData(json.historic);
-      console.log(data);
     } catch (error) {
       console.error(error);
     } finally {
@@ -44,46 +43,64 @@ function Calendar({ navigation }) {
     }
   };
 
-  useEffect(() => {
-    getHistoric();
-  }, []);
-
-  const onRefresh = () => {
-    //set isRefreshing to true
-    setIsRefreshing(true);
-    getHistoric();
-    // and set isRefreshing to false at the end of your callApiMethod()
+  const handleDateChange = (event, selectedDate) => {
+    const currentDate = selectedDate || date;
+    setShowDatePicker(false);
+    setDateFilter(moment.utc(currentDate).format('yyyy-MM-DD'));
   };
 
-  //FICHAJE ___________________________________________________________________________________
+  const showDatepicker = () => {
+    setShowDatePicker(true);
+  };
+
+  const onRefresh = () => {
+    setIsRefreshing(true);
+    getHistoric();
+  };
 
   useEffect(() => {
-    const keyboardDidShowListener = Keyboard.addListener(
-      'keyboardDidShow',
-      () => {
-        setIsActive(true);
-      }
-    );
-    const keyboardDidHideListener = Keyboard.addListener(
-      'keyboardDidHide',
-      () => {
-        setIsActive(false);
-      }
-    );
-    return () => {
-      keyboardDidHideListener.remove();
-      keyboardDidShowListener.remove();
-    };
+    getHistoric();
   }, []);
+
+  const handleCalendarModeDay = () => {
+    showDatepicker();
+    setCalendarMode("date");
+    setCalendarDisplay("default");
+  };
+  const handleCalendarModeMonth = () => {
+    alert('Unavailable option');
+  };
+  const handleQuit = () => {
+    setDateFilter(null);
+  }
+
+  const filteredData = dateFilter
+    ? data.filter((item) => item.date === dateFilter)
+    : data;
 
   return (
     <View style={styles.layout}>
+    <Text style={styles.text3}>{dateFilter ? 'Results from: '+ dateFilter : 'All results:'}</Text>
+          <View style={styles.buttonContainer}>
+            <Button style={styles.button} onPress={handleCalendarModeDay}><Text style={styles.text}>Pick day</Text></Button>
+            <Button  style={styles.button} onPress={handleCalendarModeMonth}><Text style={styles.text}>Pick month</Text></Button>
+            <FontAwesome disabled={!dateFilter} style={!dateFilter && { display: 'none' }} name={"remove"} onPress={handleQuit} size={40} color={'#0E66AA'} />
+            {showDatePicker && (
+              <DateTimePicker
+                testID="datePicker"
+                value={date}
+                mode={calendarMode}
+                display={calendarDisplay}
+                onChange={handleDateChange}
+              />
+            )}
+          </View>
       <View style={styles.bottomsection}>
         {isLoading ? (
           <ActivityIndicator />
         ) : (
           <FlatList
-            data={data}
+            data={filteredData}
             keyExtractor={({ id }) => id}
             onRefresh={onRefresh}
             refreshing={isRefreshing}
@@ -126,27 +143,37 @@ const styles = StyleSheet.create({
     borderWidth: 0,
     borderColor: 'red',
   },
-  userInfo: {
-    marginBottom: 20,
+  dateFilterContainer: {
+   
+  },
+  bottomsection: {
+    flex: 0.9,
   },
   flatlistElement: {
     innerHeight: 80,
+    borderRadius: 20,
     borderColor: '#F3FFFF',
-    borderWidth: 0,
+    borderWidth: 2,
   },
   flatlistElementRight: {
+    borderRadius: 20,
+    borderTopLeftRadius: 1,
+    borderBottomLeftRadius: 1,
     innerHeight: 80,
     flex: 0.66,
-    borderColor: '#F3FFFF',
-    borderWidth: 1,
+    borderColor: '#0E66AA',
+    borderWidth: 3,
   },
   flatlistElementLeft: {
+    borderTopEndRadius: 1,
+    borderBottomEndRadius: 1,
+    borderRadius: 20,
     innerHeight: 80,
     alignItems: 'center',
     justifyContent: 'center',
     flex: 0.33,
-    borderColor: '#F3FFFF',
-    borderWidth: 2,
+    borderColor: '#0E66AA',
+    borderWidth: 3,
   },
   flatlistLayout: {
     flex: 1,
@@ -165,6 +192,31 @@ const styles = StyleSheet.create({
     color: 'green',
     fontWeight: 'bold',
   },
+    button: {
+    backgroundColor: '#0E66AA',
+    borderRadius: 20,
+    borderWidth: 3,
+    borderColor: '#53D8FB',
+    width: 150,
+    height: 50,
+  },
+  buttonContainer: {
+ flex: 0.1,
+    justifyContent: 'space-evenly',
+    flexDirection: 'row',
+  },
+  text: {
+    color: 'white',
+    textAlign: 'center',
+    fontSize:14
+  },
+   text3: {
+    color: '#0E66AA',
+    textAlign: 'center',
+    fontWeight: 'bold',
+    fontSize:18,
+    
+  },
 });
 
-export default Calendar;
+export default Historic;

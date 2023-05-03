@@ -138,7 +138,7 @@ function LoginScreen({ navigation }) {
             <Text style={{ textAlign: 'center' }}>Login </Text>
           </Button>
         </View>
-        <Text>Version 0.1</Text>
+        <Text>Version 1.1</Text>
       </View>
     </View>
   );
