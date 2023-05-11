@@ -29,8 +29,12 @@ export default function App() {
             component={Tabs}
             options={{
               title: 'Check-In',
-              headerStyle: { backgroundColor: '#0E66AA' },
-              headerTitleStyle: { color: '#F3FFFF' },
+              headerStyle: { backgroundColor: '#0E66AA', height: 65 },
+              headerTitleStyle: { color: '#F3FFFF'},
+              elevation: 0,
+              shadowOpacity: 0,
+              borderBottomWidth: 0,
+              headerShadowVisible: false,
 
               headerLeft: () => {
                 return null;
@@ -48,9 +52,12 @@ const Tabs = () => (
       tabBarStyle: {
         backgroundColor: '#0E66AA',
         height: Dimensions.get('window').height / 11,
-        borderTopWidth: 2,
+        borderTopWidth: 0,
         borderTopColor: 'white',
-        headerShown: false
+        headerShown: false,
+        elevation: 0,
+        shadowOpacity: 0,
+        borderBottomWidth: 0,
       },
       tabBarIcon: ({ color }) => {
         let iconName;
@@ -65,22 +72,30 @@ const Tabs = () => (
             break;
 
           case 'Calendar':
-            iconName = "calendar";
+            iconName = 'calendar';
             break;
         }
-        
+
         return <FontAwesome name={iconName} size={40} color={color} />;
       },
       tabBarActiveTintColor: 'white',
       tabBarInactiveTintColor: '#344955',
       tabBarShowLabel: false,
     })}>
-    <Tab.Screen options={{ headerShown: false }}
+    <Tab.Screen
+      options={{ headerShown: false }}
       name="Check"
       component={Check}
     />
-    <Tab.Screen options={{ headerShown: false }} name="Historic" component={Historic} />
-    <Tab.Screen options={{ headerShown: false }} name="Calendar" component={Calendar}/>
-   
+    <Tab.Screen
+      options={{ headerShown: false }}
+      name="Historic"
+      component={Historic}
+    />
+    <Tab.Screen
+      options={{ headerShown: false }}
+      name="Calendar"
+      component={Calendar}
+    />
   </Tab.Navigator>
 );

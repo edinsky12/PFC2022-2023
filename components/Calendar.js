@@ -15,14 +15,11 @@ import PantallasProvider from '../components/ContextProvider';
 
 function Calendar({ navigation }) {
   const [isLoading, setLoading] = useState(true);
-  const [isActive, setIsActive] = useState(false);
-  const { userLogged, setUserLogged } = useContext(PantallasProvider);
-  const { groupId, setGroupId } = useContext(PantallasProvider);
-  const { office } = useContext(PantallasProvider);
+  const [setIsActive] = useState(false);
+  const {userLogged} = useContext(PantallasProvider);
+  const {groupId} = useContext(PantallasProvider);
+  const {office} = useContext(PantallasProvider);
   const [data, setData] = useState([]);
-  const [dayToday, setDayToday] = useState('');
-
-  const today = moment().format('dddd');
 
   //TESTING ___________________________________________________________________________________
 

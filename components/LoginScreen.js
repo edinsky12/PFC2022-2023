@@ -7,30 +7,12 @@ import PantallasProvider from '../components/ContextProvider';
 
 function LoginScreen({ navigation }) {
   const logo = require('../assets/logo.png');
-
-  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const [isActive, setIsActive] = useState(false);
   const [user, setUser] = useState('Edcafe');
   const [pass, setPass] = useState('1234');
-  const [userApi, setUserApi] = useState('');
-  const [passApi, setPassApi] = useState('');
-
-  const { office, setOffice } = useContext(PantallasProvider);
-
-  
-  const { groupId, setGroupId } = useContext(PantallasProvider);
-  const { setEntryHourLogged } = useContext(PantallasProvider);
-  const { setExitHourLogged } = useContext(PantallasProvider);
-  const { setBreakTimeLogged } = useContext(PantallasProvider);
-
-  const { mondaySch, setMondaySch } = useContext(PantallasProvider);
-  const { tuesdaySch, setTuesdaySch } = useContext(PantallasProvider);
-  const { wednesdaySch, setWednesdaySch } = useContext(PantallasProvider);
-  const { thursdaySch, setThursdaySch } = useContext(PantallasProvider);
-  const { fridaySch, setFridaySch } = useContext(PantallasProvider);
-  const { saturdaySch, setSaturdaySch } = useContext(PantallasProvider);
-  const { sundaySch, setSundaySch } = useContext(PantallasProvider);
-  const { userLogged, setUserLogged } = useContext(PantallasProvider);
+  const {setOffice } = useContext(PantallasProvider);
+  const {setGroupId } = useContext(PantallasProvider);
+  const {setUserLogged } = useContext(PantallasProvider);
 
   //LOGIN ___________________________________________________________________________________
 
@@ -125,6 +107,7 @@ function LoginScreen({ navigation }) {
             onChangeText={setPass}
             label="Password..."
             placeholder="Write your password..."
+            secureTextEntry={true}
           />
         </View>
         <View style={styles.botonesFinal}>
@@ -138,7 +121,7 @@ function LoginScreen({ navigation }) {
             <Text style={{ textAlign: 'center' }}>Login </Text>
           </Button>
         </View>
-        <Text>Version 1.1</Text>
+        <Text>Version 1.5</Text>
       </View>
     </View>
   );

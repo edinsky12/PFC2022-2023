@@ -42,8 +42,6 @@ const Check = () => {
   const [needsRefresh, setNeedsRefresh] = useState(true);
   const [type, setType] = useState(null);
   const [loading, setloading] = useState(false);
-  
-  const [canEntry, setCanEntry] = useState(false);
 
   const getSchedOnLoad = async () => {
     if (entryTimeToday == null) {
@@ -64,14 +62,6 @@ const Check = () => {
       }
     }
   };
-    function checkIfCanEnter(entry, exit, hourChecked) {
-  const fechaInicio = new Date(`01/01/2021 ${entry}`);
-  const fechaFin = new Date(`01/01/2021 ${exit}`);
-  const fechaVerificacion = new Date(`01/01/2021 ${hourChecked}`);
-  const diferenciaEnMs = fechaFin - fechaInicio;
-  const horaVerificacionEnMs = fechaVerificacion - fechaInicio;
-  return horaVerificacionEnMs >= 0 && horaVerificacionEnMs <= diferenciaEnMs;
-}
 
   const getMinutesWorked = async () => {
     try {
@@ -214,14 +204,14 @@ const Check = () => {
       lastReg.date === moment().format('yyyy-MM-DD')
     ) {
       setIsActive(false);
-      setBtnText('Entry');
+      setBtnText('Entrada');
       setType(1);
     } else if (
       lastReg.type === 'Entry' &&
       lastReg.date !== moment().format('yyyy-MM-DD')
     ) {
       setIsActive(false);
-      setBtnText('Entry');
+      setBtnText('Entrada');
       setType(2);
       setTimeSinceLastEntry('0');
       setTimeTotal('0');
@@ -230,7 +220,7 @@ const Check = () => {
       lastReg.date !== moment().format('yyyy-MM-DD')
     ) {
       setIsActive(false);
-      setBtnText('Entry');
+      setBtnText('Entrada');
       setType(1);
       setTimeSinceLastEntry('0');
       setTimeTotal('0');
@@ -268,7 +258,7 @@ const Check = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       getTimeNow();
-      
+      getLastRec();
     }, 5000);
     return () => clearInterval(interval);
   }, []);
@@ -278,8 +268,6 @@ const Check = () => {
       getTimeInside();
       getMinutesWorked();
       sumTotalTime();
-      getLastRec();
-      setCanEntry(checkIfCanEnter(entryTimeToday,exitTimeToday,todayNow));
     }, 2000);
     return () => clearInterval(interval);
   }, [getTimeNow]);
@@ -331,8 +319,7 @@ const Check = () => {
         });
         setTimeSinceLastEntry('0');
       } else {
-if(canEntry){
- let url = 'http://35.170.135.172:5000/api/enviaDatos';
+        let url = 'http://35.170.135.172:5000/api/enviaDatos';
         Alert.alert(
           'Succesful entry',
           'Entry of ' + userLogged + ' registred at: ' + todayNow,
@@ -351,15 +338,6 @@ if(canEntry){
           body: 'entry,"",' + userLogged + ',' + "''",
         });
         setTimeSinceLastEntry('0');
-}else if(!canEntry){
-  Alert.alert(
-          'Entry attempt failed',
-          'Sorry, you can only enter inside your schedule.',
-          [{ text: 'OK' }]
-        );
-}
-
-       
       }
     }
   };
@@ -389,22 +367,6 @@ if(canEntry){
     }, 5000); // hide the overlay after 5 seconds
   };
 
-  const containerStyle = {
-    backgroundColor: canEntry ? '#C9DDC1' : '#DDC1C1',
-          fontSize: 18,
-            borderRadius: 20,
-            borderTopEndRadius: 20,
-            borderBottomEndRadius: 1,
-            borderBottomLeftRadius: 1,
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderWidth: 3,
-            width: 320,
-            height: 50,
-            borderColor: '#53D8FB',
-            overflow: 'hidden',
-  };
-
   return (
     <View style={styles.layout}>
       {isLoading && (
@@ -422,7 +384,21 @@ if(canEntry){
       </View>
       <View style={styles.topsection}>
         <View
-          style={containerStyle}>
+          style={{
+            backgroundColor: 'white',
+            fontSize: 18,
+            borderRadius: 20,
+            borderTopEndRadius: 20,
+            borderBottomEndRadius: 1,
+            borderBottomLeftRadius: 1,
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderWidth: 3,
+            width: 320,
+            height: 50,
+            borderColor: '#53D8FB',
+            overflow: 'hidden',
+          }}>
           {isLoading ? (
             <ActivityIndicator />
           ) : (
@@ -503,14 +479,14 @@ if(canEntry){
             squircleParams={{
               cornerSmoothing: 1,
               cornerRadius: 50,
-              fillColor: canEntry ? '#0E66AA' : '#BDBDBD',
+              fillColor: '#0E66AA',
             }}>
             <TouchableOpacity
               style={{
-                backgroundColor: canEntry ? isActive ? '#0E66AA' : '#7590DA' : '#BDBDBD',
+                backgroundColor: isActive ? '#0E66AA' : '#7590DA',
                 borderRadius: isActive ? 50 : 140,
                 borderWidth: isActive ? 10 : 10,
-                borderColor: canEntry ? isActive ? '#53D8FB' : '#0E66AA' : '#5D5D5D',
+                borderColor: isActive ? '#53D8FB' : '#0E66AA',
                 width: isActive ? 160 : 160,
                 height: isActive ? 160 : 160,
                 alignItems: 'center',
@@ -536,19 +512,15 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     padding: 0,
-    backgroundColor: '#0E66AA',
+    backgroundColor: '#F3FFFF',
     textAlign: 'center',
     borderWidth: 0,
     borderColor: 'red',
   },
   imageHeader: {
     flex: 0.2,
-    borderWidth: 0,
-    borderColor: 'red',
-    backgroundColor: '#0E66AA',
   },
   topsection: {
-    backgroundColor: '#F3FFFF',
     justifyContent: 'center',
     alignItems: 'center',
     flex: 0.4,
@@ -556,14 +528,11 @@ const styles = StyleSheet.create({
     borderColor: 'green',
   },
   middlesection: {
-    backgroundColor: '#F3FFFF',
     justifyContent: 'center',
     alignItems: 'center',
     flex: 0.4,
     borderWidth: 0,
     borderColor: 'purple',
-    borderBottomEndRadius: 30,
-    borderBottomLeftRadius: 30,
   },
 
   headerText: {
@@ -583,10 +552,7 @@ const styles = StyleSheet.create({
   },
   image: {
     flex: 2,
-    overflow: 'hidden',
     justifyContent: 'center',
-    borderTopEndRadius: 30,
-    borderTopLeftRadius: 30,
   },
   textInfoEntry: {
     justifyContent: 'center',

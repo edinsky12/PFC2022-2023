@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { View, ActivityIndicator,Text,StyleSheet } from 'react-native';
-import ThreeDotsAnimation from './ThreeDotsAnimation';
 
 
 const Overlay = () => {
